@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter.ttk import Combobox
 
 from entities.Node import Node
+from entities.Node import NodeType
 from entities.Edge import Edge
 
 
@@ -17,6 +18,12 @@ class CircleGraph:
 
         self.delete_button = Button(root, text="Eliminar Circulos y Flechas", command=self.toggle_delete_button)
         self.delete_button.place(x=120, y=10)
+
+        self.set_input_button = Button(root, text="Agregar Entrada", command=self.toggle_set_input_button)
+        self.set_input_button.place(x=300, y=10)
+
+        self.set_output_button = Button(root, text="Agregar Salida", command=self.toggle_set_output_button)
+        self.set_output_button.place(x=420, y=10)
 
         self.canvas = Canvas(root, width=1280, height=720, bg='#CAC9C9')
         self.canvas.place(x=0, y=40)
@@ -48,13 +55,15 @@ class CircleGraph:
         self.end_criterion_value_entry.place(x=290, y=830)
 
         self.aux_button = Button(root, text="Nodos y Aristas", command=self.print_nodes_and_connections)
-        self.aux_button.place(x=300, y=10)
+        self.aux_button.place(x=1000, y=10)
 
         self.nodes = []
         self.connections = []
         self.arrows = []
         self.create_circle_button_active = False
         self.delete_button_active = False
+        self.set_input_button_active = False
+        self.set_output_button_active = False
 
         # set window properties
         screen_width = root.winfo_screenwidth()
@@ -89,16 +98,22 @@ class CircleGraph:
             self.create_circle(event)
         elif self.delete_button_active:
             self.delete_item(event)
+        elif self.set_input_button_active:
+            self.set_input_node(event)
+        elif self.set_output_button_active:
+            self.set_output_node(event)
         else:
             self.toggle_circle_color(event)
 
     def create_circle(self, event):
         x, y = event.x, event.y
         circle = self.canvas.create_oval(x-15, y-15, x+15, y+15, fill="white")
+        node = Node(id=circle)
         circle_data = {
             "id": circle,
             "center": (x, y),
-            "selected": False
+            "selected": False,
+            "node": node
         }
         self.nodes.append(circle_data)
 
@@ -129,17 +144,47 @@ class CircleGraph:
                     end_point = (end_center_x - direction[0] * 15, end_center_y - direction[1] * 15)
                     arrow = self.canvas.create_line(start_point[0], start_point[1], end_point[0], end_point[1],
                                                     arrow=tk.LAST, width=3)
+                    edge = Edge(origin_node=start_node_data["node"], destiny_node=end_node_data["node"])
                     arrow_data = {
                         "id": arrow,
                         "start_node": start_node_data,
-                        "end_node": end_node_data
+                        "end_node": end_node_data,
+                        "edge": edge
                     }
                     self.connections.append(arrow_data)
                     self.arrows = []
                     start_node_data["selected"] = False
                     end_node_data["selected"] = False
-                    self.canvas.itemconfig(start_node, fill="white")  # Cambiar color de círculo de origen a blanco
-                    self.canvas.itemconfig(end_node, fill="white")
+
+                    self.change_node_color(start_node_data)
+                    self.change_node_color(end_node_data)
+                    self.add_properties_window(arrow_data)
+                break
+
+    def change_node_color(self, node_data):
+        if node_data["node"].node_type == NodeType.INPUT:
+            self.canvas.itemconfig(node_data["id"], fill="green")
+        elif node_data["node"].node_type == NodeType.OUTPUT:
+            self.canvas.itemconfig(node_data["id"], fill="red")
+        else:
+            self.canvas.itemconfig(node_data["id"], fill="white")
+
+    def set_input_node(self, event):
+        for node_data in self.nodes:
+            node = node_data["id"]
+            x1, y1, x2, y2 = self.canvas.coords(node)
+            if x1 <= event.x <= x2 and y1 <= event.y <= y2:
+                node_data["node"].node_type = NodeType.INPUT
+                self.change_node_color(node_data)
+                break
+
+    def set_output_node(self, event):
+        for node_data in self.nodes:
+            node = node_data["id"]
+            x1, y1, x2, y2 = self.canvas.coords(node)
+            if x1 <= event.x <= x2 and y1 <= event.y <= y2:
+                node_data["node"].node_type = NodeType.OUTPUT
+                self.change_node_color(node_data)
                 break
 
     def toggle_circle_color(self, event):
@@ -151,7 +196,7 @@ class CircleGraph:
                     self.canvas.itemconfig(node, fill="yellow")
                     node_data["selected"] = True
                 else:
-                    self.canvas.itemconfig(node, fill="white")
+                    self.change_node_color(node_data)
                     node_data["selected"] = False
                 break
 
@@ -160,6 +205,10 @@ class CircleGraph:
         if self.create_circle_button_active:
             self.delete_button_active = False
             self.delete_button.config(relief=tk.RAISED)
+            self.set_output_button_active = False
+            self.set_output_button.config(relief=tk.RAISED)
+            self.set_input_button_active = False
+            self.set_output_button.config(relief=tk.RAISED)
         self.update_button_state()
 
     def toggle_delete_button(self):
@@ -167,6 +216,32 @@ class CircleGraph:
         if self.delete_button_active:
             self.create_circle_button_active = False
             self.create_circle_button.config(relief=tk.RAISED)
+            self.set_output_button_active = False
+            self.set_output_button.config(relief=tk.RAISED)
+            self.set_input_button_active = False
+            self.set_output_button.config(relief=tk.RAISED)
+        self.update_button_state()
+
+    def toggle_set_input_button(self):
+        self.set_input_button_active = not self.set_input_button_active
+        if self.set_input_button_active:
+            self.delete_button_active = False
+            self.delete_button.config(relief=tk.RAISED)
+            self.create_circle_button_active = False
+            self.create_circle_button.config(relief=tk.RAISED)
+            self.set_output_button_active = False
+            self.set_output_button.config(relief=tk.RAISED)
+        self.update_button_state()
+
+    def toggle_set_output_button(self):
+        self.set_output_button_active = not self.set_output_button_active
+        if self.set_output_button_active:
+            self.delete_button_active = False
+            self.delete_button.config(relief=tk.RAISED)
+            self.create_circle_button_active = False
+            self.create_circle_button.config(relief=tk.RAISED)
+            self.set_input_button_active = False
+            self.set_input_button.config(relief=tk.RAISED)
         self.update_button_state()
 
     def update_button_state(self):
@@ -178,6 +253,14 @@ class CircleGraph:
             self.delete_button.config(relief=tk.SUNKEN)
         else:
             self.delete_button.config(relief=tk.RAISED)
+        if self.set_input_button_active:
+            self.set_input_button.config(relief=tk.SUNKEN)
+        else:
+            self.set_input_button.config(relief=tk.RAISED)
+        if self.set_output_button_active:
+            self.set_output_button.config(relief=tk.SUNKEN)
+        else:
+            self.set_output_button.config(relief=tk.RAISED)
 
     def delete_item(self, event):
         for node_data in self.nodes:
@@ -197,3 +280,53 @@ class CircleGraph:
                 self.canvas.delete(node)
                 self.nodes.remove(node_data)
                 break
+
+    def add_properties_window(self, arrow_data):
+        properties_window = tk.Toplevel()
+        properties_window.title("Propiedades de la Flecha")
+
+        capacity_label = Label(properties_window, text="Capacidad:")
+        capacity_label.grid(row=0, column=0)
+        capacity_entry = Entry(properties_window)
+        capacity_entry.grid(row=0, column=1)
+
+        origin_percentage_label = Label(properties_window, text="% Origen:")
+        origin_percentage_label.grid(row=1, column=0)
+        origin_percentage_entry = Entry(properties_window)
+        origin_percentage_entry.grid(row=1, column=1)
+
+        destination_percentage_label = Label(properties_window, text="% Destino:")
+        destination_percentage_label.grid(row=2, column=0)
+        destination_percentage_entry = Entry(properties_window)
+        destination_percentage_entry.grid(row=2, column=1)
+
+        save_button = Button(properties_window, text="Guardar",
+                             command=lambda: self.save_properties(arrow_data, capacity_entry.get(),
+                                                                  origin_percentage_entry.get(),
+                                                                  destination_percentage_entry.get(),
+                                                                  properties_window))
+        save_button.grid(row=3, column=0, columnspan=2)
+
+    def save_properties(self, arrow_data, capacity, origin_percentage, destination_percentage, properties_window):
+        arrow_data["edge"].capacity = capacity
+        arrow_data["edge"].origin_percentage = origin_percentage
+        arrow_data["edge"].destination_percentage = destination_percentage
+        properties_window.destroy()
+
+        # Crear el texto con la información de la flecha
+        start_node_data, end_node_data = arrow_data["start_node"], arrow_data["end_node"]
+        start_center_x, start_center_y = start_node_data["center"]
+        end_center_x, end_center_y = end_node_data["center"]
+        direction = (end_center_x - start_center_x, end_center_y - start_center_y)
+        length = (direction[0] ** 2 + direction[1] ** 2) ** 0.5
+        direction = (direction[0] / length, direction[1] / length)
+        start_point = (start_center_x + direction[0] * 15, start_center_y + direction[1] * 15)
+        end_point = (end_center_x - direction[0] * 15, end_center_y - direction[1] * 15)
+        text_x = (start_point[0] + end_point[0]) / 2
+        text_y = (start_point[1] + end_point[1]) / 2
+        text = f"Capacidad: {arrow_data['edge'].capacity}\nOrigen: {arrow_data['edge'].origin_percentage}\nDestino: {arrow_data['edge'].destination_percentage}"
+        text_id = self.canvas.create_text(text_x, text_y, text=text, fill="yellow", font=("Arial", 12, "bold"))
+
+        # Almacenar el ID del texto en el diccionario de la flecha
+        arrow_data["text_id"] = text_id
+
