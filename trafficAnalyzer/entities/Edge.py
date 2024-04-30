@@ -3,5 +3,5 @@ class Edge:
         self.origin_node = origin_node
         self.destiny_node = destiny_node
         self.capacity = capacity
-        self.origin_percentage = origin_percentage
-        self.destination_percentage = destination_percentage
+        self.origin_percentage = int(origin_percentage)
+        self.destination_percentage = int(destination_percentage)

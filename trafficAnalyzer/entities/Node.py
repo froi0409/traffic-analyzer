@@ -8,8 +8,9 @@ class NodeType(Enum):
 
 
 class Node:
-    def __init__(self, id):
+    def __init__(self, id, input_vehicles=0):
         self.id = id
         self.input_edges = []
         self.output_edges = []
         self.node_type = NodeType.NORMAL
+        self.input_vehicles = input_vehicles

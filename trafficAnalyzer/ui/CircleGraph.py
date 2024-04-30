@@ -4,6 +4,7 @@ from tkinter import Canvas, Button, Entry, Label
 from tkinter import *
 from tkinter.ttk import Combobox
 
+from gahandle.Model import Model
 from entities.Node import Node
 from entities.Node import NodeType
 from entities.Edge import Edge
@@ -57,6 +58,9 @@ class CircleGraph:
         self.aux_button = Button(root, text="Nodos y Aristas", command=self.print_nodes_and_connections)
         self.aux_button.place(x=1000, y=10)
 
+        self.run_model_button = Button(root, height=5, width=50, fg="white", bg="green", text="Ejecutar Modelo", command=self.run_model)
+        self.run_model_button.place(x=450, y=770)
+
         self.nodes = []
         self.connections = []
         self.arrows = []
@@ -102,8 +106,6 @@ class CircleGraph:
             self.set_input_node(event)
         elif self.set_output_button_active:
             self.set_output_node(event)
-        else:
-            self.toggle_circle_color(event)
 
     def create_circle(self, event):
         x, y = event.x, event.y
@@ -151,6 +153,7 @@ class CircleGraph:
                         "end_node": end_node_data,
                         "edge": edge
                     }
+                    start_node_data["node"].output_edges.append(edge)
                     self.connections.append(arrow_data)
                     self.arrows = []
                     start_node_data["selected"] = False
@@ -176,6 +179,7 @@ class CircleGraph:
             if x1 <= event.x <= x2 and y1 <= event.y <= y2:
                 node_data["node"].node_type = NodeType.INPUT
                 self.change_node_color(node_data)
+                self.add_input_properties_window(node_data)
                 break
 
     def set_output_node(self, event):
@@ -283,7 +287,7 @@ class CircleGraph:
 
     def add_properties_window(self, arrow_data):
         properties_window = tk.Toplevel()
-        properties_window.title("Propiedades de la Flecha")
+        properties_window.title("Propiedades del Camino")
 
         capacity_label = Label(properties_window, text="Capacidad:")
         capacity_label.grid(row=0, column=0)
@@ -330,3 +334,39 @@ class CircleGraph:
         # Almacenar el ID del texto en el diccionario de la flecha
         arrow_data["text_id"] = text_id
 
+    def add_input_properties_window(self, node_data):
+        properties_window = tk.Toplevel()
+        properties_window.title("Propiedades de Entrada")
+
+        input_vehicles_label = Label(properties_window, text="Vehiculos Entrantes:")
+        input_vehicles_label.grid(row=0, column=0)
+        input_vehicles_entry = Entry(properties_window)
+        input_vehicles_entry.grid(row=0, column=1)
+
+        save_button = Button(properties_window, text="Guardar",
+                             command=lambda: self.save_input_properties(node_data,
+                                                                        input_vehicles_entry.get(),
+                                                                        properties_window))
+        save_button.grid(row=3, columnspan=2)
+
+
+    def save_input_properties(self, node_data, input_vehicles, properties_window):
+        node_data["node"].input_vehicles = input_vehicles
+        properties_window.destroy()
+
+        center_x, center_y = node_data["center"]
+        text_id = self.canvas.create_text(center_x, center_y, text=input_vehicles, fill="white")
+
+        node_data["text_id"] = text_id
+
+    def run_model(self):
+        model = Model(
+                        population_size=self.population_size_entry.get(),
+                        mutations_number=self.mutations_number_entry.get(),
+                        mutations_cycle_generations=self.mutations_cycle_generations_entry.get(),
+                        end_criterion=self.end_criterion_entry.get(),
+                        end_criterion_value=self.end_criterion_value_entry.get(),
+                        nodes=self.nodes
+                      )
+
+        model.run_model()
