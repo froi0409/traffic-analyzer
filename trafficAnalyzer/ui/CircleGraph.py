@@ -312,9 +312,9 @@ class CircleGraph:
         save_button.grid(row=3, column=0, columnspan=2)
 
     def save_properties(self, arrow_data, capacity, origin_percentage, destination_percentage, properties_window):
-        arrow_data["edge"].capacity = capacity
-        arrow_data["edge"].origin_percentage = origin_percentage
-        arrow_data["edge"].destination_percentage = destination_percentage
+        arrow_data["edge"].capacity = int(capacity)
+        arrow_data["edge"].origin_percentage = int(origin_percentage)
+        arrow_data["edge"].destination_percentage = int(destination_percentage)
         properties_window.destroy()
 
         # Crear el texto con la información de la flecha
@@ -345,13 +345,13 @@ class CircleGraph:
 
         save_button = Button(properties_window, text="Guardar",
                              command=lambda: self.save_input_properties(node_data,
-                                                                        input_vehicles_entry.get(),
+                                                                        int(input_vehicles_entry.get()),
                                                                         properties_window))
         save_button.grid(row=3, columnspan=2)
 
 
     def save_input_properties(self, node_data, input_vehicles, properties_window):
-        node_data["node"].input_vehicles = input_vehicles
+        node_data["node"].input_vehicles = int(input_vehicles)
         properties_window.destroy()
 
         center_x, center_y = node_data["center"]
@@ -361,11 +361,11 @@ class CircleGraph:
 
     def run_model(self):
         model = Model(
-                        population_size=self.population_size_entry.get(),
-                        mutations_number=self.mutations_number_entry.get(),
-                        mutations_cycle_generations=self.mutations_cycle_generations_entry.get(),
+                        population_size=int(self.population_size_entry.get()),
+                        mutations_number=int(self.mutations_number_entry.get()),
+                        mutations_cycle_generations=int(self.mutations_cycle_generations_entry.get()),
                         end_criterion=self.end_criterion_entry.get(),
-                        end_criterion_value=self.end_criterion_value_entry.get(),
+                        end_criterion_value=int(self.end_criterion_value_entry.get()),
                         nodes=self.nodes
                       )
 

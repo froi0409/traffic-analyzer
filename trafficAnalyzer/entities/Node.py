@@ -13,4 +13,4 @@ class Node:
         self.input_edges = []
         self.output_edges = []
         self.node_type = NodeType.NORMAL
-        self.input_vehicles = input_vehicles
+        self.input_vehicles = int(input_vehicles)

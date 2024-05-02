@@ -5,3 +5,4 @@ class Edge:
         self.capacity = capacity
         self.origin_percentage = int(origin_percentage)
         self.destination_percentage = int(destination_percentage)
+        self.vehicles_in = 0
