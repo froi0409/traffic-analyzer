@@ -366,7 +366,8 @@ class CircleGraph:
                         mutations_cycle_generations=int(self.mutations_cycle_generations_entry.get()),
                         end_criterion=self.end_criterion_entry.get(),
                         end_criterion_value=int(self.end_criterion_value_entry.get()),
-                        nodes=self.nodes
+                        nodes=self.nodes,
+                        canvas=self.canvas
                       )
 
         model.run_model()

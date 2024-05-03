@@ -13,15 +13,21 @@ class Chromosome:
         else:
             self.genes = genes
 
+        self.clean_genes = copy.deepcopy(self.genes)
+        for gene in self.clean_genes:
+            gene.output_edges = copy.deepcopy(gene.output_edges)
+
         self.input_nodes = []
         self.get_inputs()
 
         self.out_cars = 0
+        self.total_cars = 0
         self.fitness_function()
-        self.fitness_value = self.out_cars
+        self.fitness_value_float = self.out_cars / self.total_cars
+        self.fitness_value = int(self.fitness_value_float * 100)
 
     def get_inputs(self):
-        for node in self.nodes:
+        for node in self.genes:
             if node.node_type == NodeType.INPUT:
                 self.input_nodes.append(node)
 
@@ -54,16 +60,20 @@ class Chromosome:
             for edge in gene.output_edges:
                 chain += str(edge.origin_percentage) + " "
             chain += " | "
-        chain += str(self.fitness_value)
+        chain += "carros salientes: " + str(self.out_cars) + " - fv: " + str(self.fitness_value)
         return chain
+
+    def __str__(self):
+        return self.str_percentages()
 
     def fitness_function(self):
         for input in self.input_nodes:
+            self.total_cars += int(input.input_vehicles)
             self.move_cars_from_input_node(node=input)
 
     def move_cars_from_input_node(self, node):
         for i in range(node.input_vehicles):
-            random_value = random.randint(1,100)
+            random_value = random.randint(1, 100)
             percentage_edge = 0
             flag = True
             for edge in node.output_edges:
@@ -84,12 +94,11 @@ class Chromosome:
 
     def move_cars_from_edge(self, edge):
         if edge.destiny_node.node_type == NodeType.OUTPUT:
-            print("salen desde: " + str(edge.origin_percentage) + " - " + str(edge.vehicles_in))
             self.out_cars += edge.vehicles_in
             edge.vehicles_in = 0
         elif len(edge.destiny_node.output_edges) > 0:
             for i in range(edge.vehicles_in):
-                random_value = random.randint(1,100)
+                random_value = random.randint(1, 100)
                 percentage_edge = 0
                 flag = True
                 for destiny_edge in edge.destiny_node.output_edges:
