@@ -1,7 +1,9 @@
+import pickle
 import tkinter as tk
 from tkinter import Canvas, Button, Entry, Label
 
 from tkinter import *
+from tkinter import filedialog
 from tkinter.ttk import Combobox
 
 from gahandle.Model import Model
@@ -25,6 +27,12 @@ class CircleGraph:
 
         self.set_output_button = Button(root, text="Agregar Salida", command=self.toggle_set_output_button)
         self.set_output_button.place(x=420, y=10)
+
+        self.save_button = Button(root, text="Guardar Modelo", command=self.save_dict_recursive)
+        self.save_button.place(x=530, y=10)
+
+        self.load_button = Button(root, text="Cargar Modelo", command=self.load_dict_recursive)
+        self.load_button.place(x=650, y=10)
 
         self.canvas = Canvas(root, width=1280, height=720, bg='#CAC9C9')
         self.canvas.place(x=0, y=40)
@@ -380,3 +388,33 @@ class CircleGraph:
     def stop_model(self):
         self.run_model_button.configure(state="normal")
         self.stop_model_button.configure(state="disabled")
+
+    def save_dict_recursive(self):
+        data = {
+            "data_nodes_file": self.nodes,
+            "data_edges_file": self.connections
+        }
+        root = tk.Tk()
+        root.withdraw()  # Ocultar la ventana principal
+        file_path = filedialog.asksaveasfilename(defaultextension=".pkl", filetypes=[("Pickle files", "*.pkl")])
+        if file_path:
+            with open(file_path, 'wb') as file:
+                pickle.dump(data, file)
+            print("Diccionario guardado en:", file_path)
+        else:
+            print("Guardado cancelado.")
+
+    def load_dict_recursive(self):
+        file_path = filedialog.askopenfilename(filetypes=[("Pickle files", "*.pkl")])
+        if file_path:
+            loaded_data = self.load_dict(file_path)
+            print("Datos cargados:", loaded_data)
+            self.nodes = loaded_data.get("data_nodes_file", [])
+            self.connections = loaded_data.get("data_edges_file", [])
+        else:
+            print("Carga cancelada.")
+
+    def load_dict(self, file_path):
+        with open(file_path, 'rb') as file:
+            loaded_data = pickle.load(file)
+        return loaded_data
