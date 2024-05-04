@@ -17,20 +17,33 @@ class Model:
 
     def run_model(self):
         print("generate init population")
-        population = Population(nodes=self.nodes, populationSize=self.population_size)
-        population.print_population()
+        population_model = Population(nodes=self.nodes, populationSize=self.population_size)
+        population_model.print_population()
         if self.end_criterion == "Generaciones":
             for i in range(self.end_criterion_value):
-                population.new_generation()
-                solution = population.get_best_chromosome()
-                solution.update_canvas_value(canvas_plain=self.canvas)
+                self.generate_generation(population=population_model, iteration=i)
+        else:
+            i = 0
+            while True:
+                solution = self.generate_generation(population_model, iteration=i)
+                if solution.fitness_value >= self.end_criterion_value:
+                    # solved
+                    break
+                i = i + 1
 
-                efficiency_text_value = "Eficiencia: " + str(solution.fitness_value) + "%"
-                self.canvas.itemconfig(self.efficiency_text, text=efficiency_text_value)
-                print("\n-------------Generación " + str(i+1) + "-------------\n")
-                population.print_population()
-                self.root.update_idletasks()
+    def generate_generation(self, population, iteration):
+        population.new_generation()
+        solution = population.get_best_chromosome()
+        solution.update_canvas_value(canvas_plain=self.canvas)
 
-                if (i+1) % self.mutations_cycle_generations == 0:
-                    for j in range(self.mutations_number):
-                        population.mutate_population()
+        efficiency_text_value = "Eficiencia: " + str(solution.fitness_value) + "%"
+        self.canvas.itemconfig(self.efficiency_text, text=efficiency_text_value)
+        print("\n-------------Generación " + str(iteration + 1) + "-------------\n")
+        population.print_population()
+        self.root.update_idletasks()
+
+        if (iteration + 1) % self.mutations_cycle_generations == 0:
+            for j in range(self.mutations_number):
+                population.mutate_population()
+
+        return solution
