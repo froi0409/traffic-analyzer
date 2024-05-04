@@ -1,5 +1,6 @@
 import copy
 import random
+import tkinter as tk
 from entities.Node import Node, NodeType
 from entities.Edge import Edge
 
@@ -116,3 +117,21 @@ class Chromosome:
 
             for destiny_edge in edge.destiny_node.output_edges:
                 self.move_cars_from_edge(edge=destiny_edge)
+
+    def update_canvas_value(self, canvas_plain):
+        for gene in self.genes:
+            for edge in gene.output_edges:
+                edge_text = "Capacidad: " + str(edge.capacity) + "\nProbabilidad: " + str(edge.origin_percentage)
+                canvas_plain.itemconfig(edge.canvas_text_id, text=edge_text)
+
+    def mutate(self):
+        for i in range(10):
+            random_value = random.randint(0, len(self.genes) - 1)
+            if len(self.genes[random_value].output_edges) > 1:
+                self.genes[random_value] = self.generate_percentages(node=self.genes[random_value])
+                self.fitness_function()
+                self.fitness_value_float = self.out_cars / self.total_cars
+                self.fitness_value = int(self.fitness_value_float * 100)
+
+                print("Se realizó la mutación: " + self.str_percentages())
+                break

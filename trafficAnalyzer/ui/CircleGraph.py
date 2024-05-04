@@ -29,6 +29,8 @@ class CircleGraph:
         self.canvas = Canvas(root, width=1280, height=720, bg='#CAC9C9')
         self.canvas.place(x=0, y=40)
 
+        self.fitness_value_text = self.canvas.create_text(85, 15, text="Eficiencia: 0%", font=("Arial", 12, "bold"), fill="black")
+
         self.population_size_label = Label(root, text="Población")
         self.population_size_label.place(x=130, y=770)
         self.population_size_entry = Entry(root)
@@ -58,8 +60,14 @@ class CircleGraph:
         self.aux_button = Button(root, text="Nodos y Aristas", command=self.print_nodes_and_connections)
         self.aux_button.place(x=1000, y=10)
 
-        self.run_model_button = Button(root, height=5, width=50, fg="white", bg="green", text="Ejecutar Modelo", command=self.run_model)
+        self.run_model_button = Button(root, height=5, width=50, fg="white", bg="green", text="Ejecutar Modelo",
+                                       command=self.run_model)
         self.run_model_button.place(x=450, y=770)
+
+        self.stop_model_button = Button(root, height=5, width=50, fg="white", bg="red", text="Parar Ejecución",
+                                        command=self.stop_model)
+        self.stop_model_button.place(x=850, y=770)
+        self.stop_model_button.configure(state="disabled")
 
         self.nodes = []
         self.connections = []
@@ -109,7 +117,7 @@ class CircleGraph:
 
     def create_circle(self, event):
         x, y = event.x, event.y
-        circle = self.canvas.create_oval(x-15, y-15, x+15, y+15, fill="white")
+        circle = self.canvas.create_oval(x - 15, y - 15, x + 15, y + 15, fill="white")
         node = Node(id=circle)
         circle_data = {
             "id": circle,
@@ -299,22 +307,15 @@ class CircleGraph:
         origin_percentage_entry = Entry(properties_window)
         origin_percentage_entry.grid(row=1, column=1)
 
-        destination_percentage_label = Label(properties_window, text="% Destino:")
-        destination_percentage_label.grid(row=2, column=0)
-        destination_percentage_entry = Entry(properties_window)
-        destination_percentage_entry.grid(row=2, column=1)
-
         save_button = Button(properties_window, text="Guardar",
                              command=lambda: self.save_properties(arrow_data, capacity_entry.get(),
                                                                   origin_percentage_entry.get(),
-                                                                  destination_percentage_entry.get(),
                                                                   properties_window))
         save_button.grid(row=3, column=0, columnspan=2)
 
-    def save_properties(self, arrow_data, capacity, origin_percentage, destination_percentage, properties_window):
+    def save_properties(self, arrow_data, capacity, origin_percentage, properties_window):
         arrow_data["edge"].capacity = int(capacity)
         arrow_data["edge"].origin_percentage = int(origin_percentage)
-        arrow_data["edge"].destination_percentage = int(destination_percentage)
         properties_window.destroy()
 
         # Crear el texto con la información de la flecha
@@ -333,6 +334,7 @@ class CircleGraph:
 
         # Almacenar el ID del texto en el diccionario de la flecha
         arrow_data["text_id"] = text_id
+        arrow_data["edge"].canvas_text_id = text_id
 
     def add_input_properties_window(self, node_data):
         properties_window = tk.Toplevel()
@@ -349,7 +351,6 @@ class CircleGraph:
                                                                         properties_window))
         save_button.grid(row=3, columnspan=2)
 
-
     def save_input_properties(self, node_data, input_vehicles, properties_window):
         node_data["node"].input_vehicles = int(input_vehicles)
         properties_window.destroy()
@@ -360,14 +361,22 @@ class CircleGraph:
         node_data["text_id"] = text_id
 
     def run_model(self):
+        self.run_model_button.configure(state="disabled")
+        self.stop_model_button.configure(state="normal")
         model = Model(
-                        population_size=int(self.population_size_entry.get()),
-                        mutations_number=int(self.mutations_number_entry.get()),
-                        mutations_cycle_generations=int(self.mutations_cycle_generations_entry.get()),
-                        end_criterion=self.end_criterion_entry.get(),
-                        end_criterion_value=int(self.end_criterion_value_entry.get()),
-                        nodes=self.nodes,
-                        canvas=self.canvas
-                      )
+            population_size=int(self.population_size_entry.get()),
+            mutations_number=int(self.mutations_number_entry.get()),
+            mutations_cycle_generations=int(self.mutations_cycle_generations_entry.get()),
+            end_criterion=self.end_criterion_entry.get(),
+            end_criterion_value=int(self.end_criterion_value_entry.get()),
+            nodes=self.nodes,
+            canvas=self.canvas,
+            root=self.root,
+            efficiency_text=self.fitness_value_text
+        )
 
         model.run_model()
+
+    def stop_model(self):
+        self.run_model_button.configure(state="normal")
+        self.stop_model_button.configure(state="disabled")

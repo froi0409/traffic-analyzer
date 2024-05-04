@@ -73,3 +73,16 @@ class Population():
         for i in range(len(self.population)):
             value += self.population[i].fitness_value
         return value
+
+    def get_best_chromosome(self):
+        max_fv = 0
+        best_chromosome = None
+        for chromosome in self.population:
+            if chromosome.fitness_value > max_fv:
+                best_chromosome = chromosome
+            max_fv = chromosome.fitness_value
+        return best_chromosome
+
+    def mutate_population(self):
+        random_value = random.randint(0, len(self.population) - 1)
+        self.population[random_value].mutate()
