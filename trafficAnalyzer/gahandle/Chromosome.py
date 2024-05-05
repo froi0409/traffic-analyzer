@@ -7,6 +7,7 @@ from entities.Edge import Edge
 
 class Chromosome:
     def __init__(self, nodes, genes=None):
+
         self.nodes = copy.deepcopy(nodes)
         if genes is None:
             self.genes = []
@@ -41,6 +42,7 @@ class Chromosome:
         rest_percentage = 100
         # Substract min percentages
         for edge in node.output_edges:
+            edge.origin_percentage = edge.original_origin_percentage
             rest_percentage -= int(edge.origin_percentage)
 
         # Add rest percentage
@@ -125,13 +127,21 @@ class Chromosome:
                 canvas_plain.itemconfig(edge.canvas_text_id, text=edge_text)
 
     def mutate(self):
-        for i in range(10):
-            random_value = random.randint(0, len(self.genes) - 1)
-            if len(self.genes[random_value].output_edges) > 1:
-                self.genes[random_value] = self.generate_percentages(node=self.genes[random_value])
-                self.fitness_function()
-                self.fitness_value_float = self.out_cars / self.total_cars
-                self.fitness_value = int(self.fitness_value_float * 100)
+        print("Para " + self.str_percentages(), end=" ")
+        valid_genes = []
+        for gene in self.genes:
+            if len(gene.output_edges) >= 1:
+                valid_genes.append(gene)
+        if len(valid_genes) > 0:
+            random_value = random.randint(0, len(valid_genes) - 1)
+            self.genes[random_value] = self.generate_percentages(node=self.genes[random_value])
 
-                print("Se realizó la mutación: " + self.str_percentages())
-                break
+            print("Se realizó la mutación: " + self.str_percentages())
+
+        mutated_genes = copy.deepcopy(self.clean_genes)
+        for gene in mutated_genes:
+            gene.output_edges = copy.deepcopy(gene.output_edges)
+        for index, gene in enumerate(mutated_genes):
+            for j, edge in enumerate(gene.output_edges):
+                edge.origin_percentage = self.genes[index].output_edges[j].origin_percentage
+        return mutated_genes

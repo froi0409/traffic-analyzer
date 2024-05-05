@@ -4,6 +4,7 @@ class Edge:
         self.destiny_node = destiny_node
         self.capacity = capacity
         self.origin_percentage = int(origin_percentage)
+        self.original_origin_percentage = int(origin_percentage)
         self.destination_percentage = int(destination_percentage)
         self.vehicles_in = 0
         self.canvas_text_id = canvas_text_id

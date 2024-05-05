@@ -85,4 +85,5 @@ class Population():
 
     def mutate_population(self):
         random_value = random.randint(0, len(self.population) - 1)
-        self.population[random_value].mutate()
+        mutated_chromosome = self.population[random_value].mutate()
+        self.population[random_value] = Chromosome(mutated_chromosome)

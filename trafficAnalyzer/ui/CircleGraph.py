@@ -17,10 +17,10 @@ class CircleGraph:
     def __init__(self, root):
         self.root = root
 
-        self.create_circle_button = Button(root, text="Crear Círculo", command=self.toggle_create_circle_button)
+        self.create_circle_button = Button(root, text="Crear Nodos", command=self.toggle_create_circle_button)
         self.create_circle_button.place(x=10, y=10)
 
-        self.delete_button = Button(root, text="Eliminar Circulos y Flechas", command=self.toggle_delete_button)
+        self.delete_button = Button(root, text="Eliminar Nodos y Aristas", command=self.toggle_delete_button)
         self.delete_button.place(x=120, y=10)
 
         self.set_input_button = Button(root, text="Agregar Entrada", command=self.toggle_set_input_button)
@@ -34,6 +34,9 @@ class CircleGraph:
 
         self.load_button = Button(root, text="Cargar Modelo", command=self.load_dict_recursive)
         self.load_button.place(x=650, y=10)
+
+        self.new_model_button = Button(root, text="Nuevo Modelo", command=self.new_model)
+        self.new_model_button.place(x=770, y=10)
 
         self.canvas = Canvas(root, width=1280, height=720, bg='#CAC9C9')
         self.canvas.place(x=0, y=40)
@@ -498,3 +501,13 @@ class CircleGraph:
         with open(file_path, 'rb') as file:
             loaded_data = pickle.load(file)
         return loaded_data
+
+    def new_model(self):
+        self.canvas.destroy()
+        self.canvas = Canvas(self.root, width=1280, height=720, bg='#CAC9C9')
+        self.canvas.place(x=0, y=40)
+        self.fitness_value_text = self.canvas.create_text(85, 15, text="Eficiencia: 0%", font=("Arial", 12, "bold"),
+                                                          fill="black")
+        self.nodes = []
+        self.connections = []
+

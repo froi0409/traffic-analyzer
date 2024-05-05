@@ -32,18 +32,18 @@ class Model:
                 i = i + 1
 
     def generate_generation(self, population, iteration):
+        print("\n-------------Generación " + str(iteration + 1) + "-------------\n")
+        if (iteration + 1) % self.mutations_cycle_generations == 0:
+            for j in range(self.mutations_number):
+                population.mutate_population()
         population.new_generation()
+        population.print_population()
+        self.root.update_idletasks()
+
         solution = population.get_best_chromosome()
         solution.update_canvas_value(canvas_plain=self.canvas)
 
         efficiency_text_value = "Eficiencia: " + str(solution.fitness_value) + "%"
         self.canvas.itemconfig(self.efficiency_text, text=efficiency_text_value)
-        print("\n-------------Generación " + str(iteration + 1) + "-------------\n")
-        population.print_population()
-        self.root.update_idletasks()
-
-        if (iteration + 1) % self.mutations_cycle_generations == 0:
-            for j in range(self.mutations_number):
-                population.mutate_population()
 
         return solution
