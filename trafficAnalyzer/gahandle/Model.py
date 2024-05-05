@@ -47,7 +47,7 @@ class Model:
         solution = population.get_best_chromosome()
         solution.update_canvas_value(canvas_plain=self.canvas)
 
-        efficiency_text_value = "Eficiencia: " + str(solution.fitness_value) + "%"
+        efficiency_text_value = "Eficiencia: " + str(solution.fitness_value) + "%" + " - Carros Salientes: " + str(solution.out_cars)
         self.canvas.itemconfig(self.efficiency_text, text=efficiency_text_value)
 
         return solution

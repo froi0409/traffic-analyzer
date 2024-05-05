@@ -42,7 +42,7 @@ class CircleGraph:
         self.canvas = Canvas(root, width=1280, height=720, bg='#CAC9C9')
         self.canvas.place(x=0, y=40)
 
-        self.fitness_value_text = self.canvas.create_text(85, 15, text="Eficiencia: 0%", font=("Arial", 12, "bold"), fill="black")
+        self.fitness_value_text = self.canvas.create_text(15, 15, text="Eficiencia: 0%", font=("Arial", 12, "bold"), fill="black", anchor=tk.W)
 
         self.population_size_label = Label(root, text="Población")
         self.population_size_label.place(x=130, y=770)
