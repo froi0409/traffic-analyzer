@@ -1,3 +1,4 @@
+import math
 import pickle
 import tkinter as tk
 from tkinter import Canvas, Button, Entry, Label
@@ -161,7 +162,7 @@ class CircleGraph:
                     # Calcular el punto en el borde del segundo círculo
                     end_point = (end_center_x - direction[0] * 15, end_center_y - direction[1] * 15)
                     arrow = self.canvas.create_line(start_point[0], start_point[1], end_point[0], end_point[1],
-                                                    arrow=tk.LAST, width=3)
+                                                    arrow=tk.LAST, width=2)
                     edge = Edge(origin_node=start_node_data["node"], destiny_node=end_node_data["node"])
                     arrow_data = {
                         "id": arrow,
@@ -337,8 +338,8 @@ class CircleGraph:
         end_point = (end_center_x - direction[0] * 15, end_center_y - direction[1] * 15)
         text_x = (start_point[0] + end_point[0]) / 2
         text_y = (start_point[1] + end_point[1]) / 2
-        text = f"Capacidad: {arrow_data['edge'].capacity}\nOrigen: {arrow_data['edge'].origin_percentage}\nDestino: {arrow_data['edge'].destination_percentage}"
-        text_id = self.canvas.create_text(text_x, text_y, text=text, fill="yellow", font=("Arial", 12, "bold"))
+        text = f"Capacidad: {arrow_data['edge'].capacity}\nOrigen: {arrow_data['edge'].origin_percentage}"
+        text_id = self.canvas.create_text(text_x, text_y, text=text, fill="blue", font=("Arial", 12, "bold"))
 
         # Almacenar el ID del texto en el diccionario de la flecha
         arrow_data["text_id"] = text_id
@@ -411,6 +412,85 @@ class CircleGraph:
             print("Datos cargados:", loaded_data)
             self.nodes = loaded_data.get("data_nodes_file", [])
             self.connections = loaded_data.get("data_edges_file", [])
+
+            nodes_edges = self.nodes + self.connections
+            sorted_nodes_edges = sorted(nodes_edges, key=lambda x: x["id"])
+
+            for element in sorted_nodes_edges:
+                if "node" in element:
+                    node_data = element
+                    center = node_data['center']
+                    radius = 15
+                    x1, y1 = center[0] - radius, center[1] - radius
+                    x2, y2 = center[0] + radius, center[1] + radius
+                    circle = self.canvas.create_oval(x1, y1, x2, y2, fill="white")
+                    self.change_node_color(node_data=node_data)
+                    element["id"] = circle
+                elif "edge" in element:
+                    conn_data = element
+                    start_node = conn_data['start_node']
+                    end_node = conn_data['end_node']
+                    start_x, start_y = start_node['center']
+                    end_x, end_y = end_node['center']
+                    radius = 15
+                    angle = math.atan2(end_y - start_y, end_x - start_x)
+                    start_x += radius * math.cos(angle)
+                    start_y += radius * math.sin(angle)
+                    end_x -= radius * math.cos(angle)
+                    end_y -= radius * math.sin(angle)
+                    arrow = self.canvas.create_line(start_x, start_y, end_x, end_y, arrow=tk.LAST, fill='black', width=2)
+                    element["id"] = arrow
+
+            # Graficar los círculos
+            # for node_data in self.nodes:
+            #     center = node_data['center']
+            #     radius = 15
+            #     x1, y1 = center[0] - radius, center[1] - radius
+            #     x2, y2 = center[0] + radius, center[1] + radius
+            #     self.canvas.create_oval(x1, y1, x2, y2, fill="white")
+            #     self.change_node_color(node_data=node_data)
+            #     print(str(len(node_data["node"].output_edges)))
+
+            # Graficar las flechas
+            # for conn_data in self.connections:
+            #     start_node = conn_data['start_node']
+            #     end_node = conn_data['end_node']
+            #     start_x, start_y = start_node['center']
+            #     end_x, end_y = end_node['center']
+            #     radius = 15
+            #     angle = math.atan2(end_y - start_y, end_x - start_x)
+            #     start_x += radius * math.cos(angle)
+            #     start_y += radius * math.sin(angle)
+            #     end_x -= radius * math.cos(angle)
+            #     end_y -= radius * math.sin(angle)
+            #     self.canvas.create_line(start_x, start_y, end_x, end_y, arrow=tk.LAST, fill='black', width=2)
+
+            # Imprimir textos
+            for node_data in self.nodes:
+                center = node_data['center']
+                radius = 15
+                if node_data["node"].node_type == NodeType.INPUT:
+                    input_vehicles=str(node_data["node"].input_vehicles)
+                    text_id = self.canvas.create_text(center[0], center[1], text=input_vehicles, fill="white")
+                    node_data["text_id"] = text_id
+
+            for arrow_data in self.connections:
+                start_node_data, end_node_data = arrow_data["start_node"], arrow_data["end_node"]
+                start_center_x, start_center_y = start_node_data["center"]
+                end_center_x, end_center_y = end_node_data["center"]
+                direction = (end_center_x - start_center_x, end_center_y - start_center_y)
+                length = (direction[0] ** 2 + direction[1] ** 2) ** 0.5
+                direction = (direction[0] / length, direction[1] / length)
+                start_point = (start_center_x + direction[0] * 15, start_center_y + direction[1] * 15)
+                end_point = (end_center_x - direction[0] * 15, end_center_y - direction[1] * 15)
+                text_x = (start_point[0] + end_point[0]) / 2
+                text_y = (start_point[1] + end_point[1]) / 2
+                text = f"Capacidad: {arrow_data['edge'].capacity}\nOrigen: {arrow_data['edge'].origin_percentage}"
+                text_id = self.canvas.create_text(text_x, text_y, text=text, fill="blue", font=("Arial", 12, "bold"))
+
+                arrow_data["text_id"] = text_id
+                arrow_data["edge"].canvas_text_id = text_id
+
         else:
             print("Carga cancelada.")
 
