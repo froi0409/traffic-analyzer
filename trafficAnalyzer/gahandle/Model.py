@@ -14,22 +14,26 @@ class Model:
         self.canvas = canvas
         self.root = root
         self.efficiency_text = efficiency_text
+        self.running = False
 
     def run_model(self):
+        self.running = True  # Iniciar el modelo
         print("generate init population")
         population_model = Population(nodes=self.nodes, populationSize=self.population_size)
         population_model.print_population()
         if self.end_criterion == "Generaciones":
             for i in range(self.end_criterion_value):
+                if not self.running:  # Verificar si se debe detener el modelo
+                    break
                 self.generate_generation(population=population_model, iteration=i)
         else:
             i = 0
-            while True:
+            while self.running:  # Ejecutar mientras la bandera esté en True
                 solution = self.generate_generation(population_model, iteration=i)
                 if solution.fitness_value >= self.end_criterion_value:
                     # solved
                     break
-                i = i + 1
+                i += 1
 
     def generate_generation(self, population, iteration):
         print("\n-------------Generación " + str(iteration + 1) + "-------------\n")
@@ -47,3 +51,7 @@ class Model:
         self.canvas.itemconfig(self.efficiency_text, text=efficiency_text_value)
 
         return solution
+
+    def stop_model(self):
+        self.running = False  # Detener el modelo
+

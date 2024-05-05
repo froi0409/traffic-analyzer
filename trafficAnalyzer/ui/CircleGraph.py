@@ -1,5 +1,6 @@
 import math
 import pickle
+import threading
 import tkinter as tk
 from tkinter import Canvas, Button, Entry, Label
 
@@ -88,6 +89,7 @@ class CircleGraph:
         self.delete_button_active = False
         self.set_input_button_active = False
         self.set_output_button_active = False
+        self.running_model = None
 
         # set window properties
         screen_width = root.winfo_screenwidth()
@@ -372,7 +374,7 @@ class CircleGraph:
 
         node_data["text_id"] = text_id
 
-    def run_model(self):
+    def run_model_thread(self):
         self.run_model_button.configure(state="disabled")
         self.stop_model_button.configure(state="normal")
         model = Model(
@@ -386,12 +388,20 @@ class CircleGraph:
             root=self.root,
             efficiency_text=self.fitness_value_text
         )
+        self.running_model = model
 
-        model.run_model()
+        thread = threading.Thread(target=model.run_model)
+        thread.start()
+
+    def run_model(self):
+        thread = threading.Thread(target=self.run_model_thread)
+        thread.start()
 
     def stop_model(self):
-        self.run_model_button.configure(state="normal")
-        self.stop_model_button.configure(state="disabled")
+        if self.running_model is not None:
+            self.running_model.stop_model()
+            self.run_model_button.configure(state="normal")
+            self.stop_model_button.configure(state="disabled")
 
     def save_dict_recursive(self):
         data = {
@@ -443,30 +453,6 @@ class CircleGraph:
                     end_y -= radius * math.sin(angle)
                     arrow = self.canvas.create_line(start_x, start_y, end_x, end_y, arrow=tk.LAST, fill='black', width=2)
                     element["id"] = arrow
-
-            # Graficar los círculos
-            # for node_data in self.nodes:
-            #     center = node_data['center']
-            #     radius = 15
-            #     x1, y1 = center[0] - radius, center[1] - radius
-            #     x2, y2 = center[0] + radius, center[1] + radius
-            #     self.canvas.create_oval(x1, y1, x2, y2, fill="white")
-            #     self.change_node_color(node_data=node_data)
-            #     print(str(len(node_data["node"].output_edges)))
-
-            # Graficar las flechas
-            # for conn_data in self.connections:
-            #     start_node = conn_data['start_node']
-            #     end_node = conn_data['end_node']
-            #     start_x, start_y = start_node['center']
-            #     end_x, end_y = end_node['center']
-            #     radius = 15
-            #     angle = math.atan2(end_y - start_y, end_x - start_x)
-            #     start_x += radius * math.cos(angle)
-            #     start_y += radius * math.sin(angle)
-            #     end_x -= radius * math.cos(angle)
-            #     end_y -= radius * math.sin(angle)
-            #     self.canvas.create_line(start_x, start_y, end_x, end_y, arrow=tk.LAST, fill='black', width=2)
 
             # Imprimir textos
             for node_data in self.nodes:
